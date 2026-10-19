@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informació i Metodologia — Dashboard Demogràfic de Catalunya</title>
+  <meta name="description" content="Guia metodològica, fonts oficials d'informació (Idescat i INE), taules estadístiques, APIs i funcionament del Dashboard de la població a Catalunya.">
+
+  <!-- Tipografia institucional Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estils generals del Dashboard -->
+  <link rel="stylesheet" href="../assets/css/dashboard.css?v=1.14">
+
+  <style>
+    /* Estils específics de la pàgina d'informació */
+    body.info-body {
+      height: auto;
+      min-height: 100vh;
+      overflow-y: auto;
+      background-color: var(--bg-app);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .info-container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .info-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 5px !important;
+      padding: 24px 28px;
+      box-shadow: none !important;
+    }
+
+    .info-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .info-card-header h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.2px;
+    }
+
+    .badge-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-idescat {
+      background-color: #EBF5EF;
+      color: #2B5738;
+      border: 1px solid #A3D9B1;
+    }
+
+    .badge-ine {
+      background-color: #EFF6FF;
+      color: #1E40AF;
+      border: 1px solid #BFDBFE;
+    }
+
+    .badge-export {
+      background-color: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FDE68A;
+    }
+
+    .badge-tech {
+      background-color: #F3F4F6;
+      color: #374151;
+      border: 1px solid #D1D5DB;
+    }
+
+    .info-p {
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: #374151;
+      margin-bottom: 14px;
+    }
+
+    .info-p:last-child {
+      margin-bottom: 0;
+    }
+
+    .info-highlight {
+      background-color: #F8FAFC;
+      border-left: 4px solid #2B5738;
+      padding: 12px 16px;
+      border-radius: 0 5px 5px 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #1F2937;
+      margin: 14px 0;
+    }
+
+    .info-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      margin: 16px 0;
+      border: 1px solid var(--border-color);
+      border-radius: 5px;
+    }
+
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    .info-table th {
+      background-color: #F9FAFB;
+      color: #111827;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    .info-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #E5E7EB;
+      color: #374151;
+      vertical-align: top;
+    }
+
+    .info-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .info-table tr:hover td {
+      background-color: #F9FAFB;
+    }
+
+    .code-chip {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11.5px;
+      background-color: #F3F4F6;
+      border: 1px solid #E5E7EB;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #8B1C24;
+      font-weight: 600;
+    }
+
+    .info-features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    .feature-box {
+      border: 1px solid #E5E7EB;
+      border-radius: 5px;
+      padding: 16px;
+      background-color: #FAFAFA;
+    }
+
+    .feature-box h3 {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-box p {
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: #4B5563;
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      background-color: #2B5738;
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 50%;
+    }
+
+    .link-external {
+      color: #2B5738;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+
+    .link-external:hover {
+      color: #1A3E26;
+    }
+
+    @media (max-width: 768px) {
+      .info-container {
+        padding: 16px 12px 30px;
+      }
+      .info-card {
+        padding: 18px 16px;
+      }
+    }
+  </style>
+</head>
+<body class="info-body">
+
+  <!-- Barra Superior Institucional -->
+  <header class="top-header">
+    <div class="brand-section">
+      <div class="brand-icon">
+        <img src="../imatges/family.svg" alt="Població a Catalunya" width="30" height="30">
+      </div>
+      <div>
+        <h1 class="brand-title">Distribució de la població a Catalunya</h1>
+        <div class="brand-subtitle">Guia metodològica, fonts d'informació i funcionament</div>
+      </div>
+    </div>
+
+    <!-- Botó per tornar al Dashboard interactiu -->
+    <div class="header-actions">
+      <a href="../index.html" class="btn btn-primary" style="text-decoration: none;">
+        ← Tornar a consultar les dades
+      </a>
+    </div>
+  </header>
+
+  <!-- Contingut Principal de la Pàgina d'Informació -->
+  <main class="info-container">
+
+    <!-- Secció 1: Presentació de l'Aplicació -->
+    <section class="info-card">
+      <div class="info-card-header">
+        <h2>1. Objectiu i Abast del Dashboard</h2>
+      </div>
+      <p class="info-p">
+        El <strong>Dashboard de Distribució de la Població a Catalunya</strong> és taulell per a l'exploració, visualització i anàlisi demogràfica territorial dels <strong>947 municipis</strong> que conformen Catalunya.
+      </p>
+      <p class="info-p">
+        L'eina integra en un únic entorn visual cartografia i dades en temps real (mitjançant <em>Apache ECharts</em> i <em>TopoJSON</em>) i indicadors estructurats en gràfics analítics (sexe, grans grups d'edat, balanç natural de naixements i defuncions, nacionalitat, afiliacions laborals i evolució històrica anual ininterrompuda des de l'any 2000 fins al 2025).
+      </p>
+    </section>
+
+    <!-- Secció 2: Dades Actuals de l'Idescat (API EMEX) -->
+    <section class="info-card">
+      <div class="info-card-header">
+        <span class="badge-tag badge-idescat">Dades Oficials</span>
+        <h2>2. Dades de Població Actual i Demografia: Idescat (EMEX)</h2>
+      </div>
+      <p class="info-p">
+        Tots els indicadors de població recent, composició per sexe, grups d'edat, nacionalitat, naixements, defuncions, llars i afiliacions a la Seguretat Social provenen directament de l'<strong>Institut d'Estadística de Catalunya (Idescat)</strong> mitjançant el seu servei oficial <em>El municipi en xifres (EMEX)</em>.
+      </p>
+      
+      <div class="info-highlight">
+        <strong>API Pública de l'Idescat (EMEX v1)</strong>:<br>
+        L'extracció s'articula a través de l'endpoint públic oficial:
+        <span class="code-chip">https://api.idescat.cat/emex/v1/dades.xml?id={codi_idescat}&amp;i={taules}</span>, 
+        que subministra els valors més recents auditats per a cada municipi identificat pel seu codi oficial de 6 dígits.
+      </div>
+
+      <p class="info-p">
+        A continuació es detallen les <strong>taules estadístiques de l'Idescat</strong> integrades i processades per l'aplicació:
+      </p>
+
+      <div class="info-table-wrapper">
+        <table class="info-table">
+          <thead>
+            <tr>
+              <th>Codi Taula</th>
+              <th>Temàtica Oficial</th>
+              <th>Indicadors i Variables Incorporades</th>
+              <th>Ús al Dashboard</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="code-chip">t195</span></td>
+              <td>Població per sexe</td>
+              <td>Total habitants, Homes, Dones</td>
+              <td>Targeta de context, mapa base de població i Gràfic 1 (Població per sexe)</td>
+            </tr>
+            <tr>
+              <td><span class="code-chip">t31</span> / <span class="code-chip">t37</span></td>
+              <td>Població per edat (homes / dones)</td>
+              <td>De 0 a 14 anys, 15 a 64 anys, 65 a 84 anys, 85 anys i més</td>
+              <td>Gràfic 2 (Grups d'Edat en barres horitzontals comparatives)</td>
+            </tr>
+            <tr>
+              <td><span class="code-chip">t78</span> / <span class="code-chip">t81</span></td>
+              <td>Població per nacionalitat (homes / dones)</td>
+              <td>Espanyola i Estrangera</td>
+              <td>Gràfic 4 (Donut de Nacionalitat amb percentatges i totals)</td>
+            </tr>
+            <tr>
+              <td><span class="code-chip">t164</span></td>
+              <td>Naixements</td>
+              <td>Nens, Nenes i Total naixements registrats</td>
+              <td>Gràfic 3 (Defuncions i Naixements) i càlcul de creixement vegetatiu</td>
+            </tr>
+            <tr>
+              <td><span class="code-chip">t165</span></td>
+              <td>Defuncions</td>
+              <td>Homes, Dones i Total defuncions registrades</td>
+              <td>Gràfic 3 (Balanç natural dividit per gènere i saldo natural)</td>
+            </tr>
+            <tr>
+              <td><span class="code-chip">t183</span></td>
+              <td>Afiliacions a la Seguretat Social segons sector</td>
+              <td>Agricultura, Indústria, Construcció, Serveis i Total</td>
+              <td>Gràfic 5 (Sectors d'activitat econòmica)</td>
+            </tr>
+            <tr>
+              <td><span class="code-chip">t176</span> / <span class="code-chip">t192</span></td>
+              <td>Marc físic i densitat territorial</td>
+              <td>Superfície (km²), altitud (m), coordenades UTM i densitat (hab./km²)</td>
+              <td>Exportació CSV i enquadrament cartogràfic</td>
+            </tr>
+            <tr>
+              <td><span class="code-chip">t97</span> / <span class="code-chip">t108</span></td>
+              <td>Estructura de les llars</td>
+              <td>Nombre de persones per llar, tipologia de nuclis familiars</td>
+              <td>Dades enriquides disponibles a l'exportació CSV</td>
+            </tr>
+            <tr>
+              <td><span class="code-chip">t196</span></td>
+              <td>Saldos migratoris interns</td>
+              <td>Saldo amb Catalunya, saldo amb la resta d'Espanya i intern total</td>
+              <td>Dades complementàries a l'exportació CSV</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-highlight">
+        <strong>Accés directe a la fitxa oficial de cada municipi (EMEX)</strong>:<br>
+        En seleccionar qualsevol municipi al desplegable o clicant sobre el mapa, apareix a la barra inferior el botó 
+        <strong>"Consulta dades completes de [Nom del municipi]"</strong>, que enllaça directament a la seva fitxa oficial d'Idescat: 
+        <span class="code-chip">https://www.idescat.cat/emex/?id=XXXXXX</span> (utilitzant el codi oficial territorial de 6 dígits, com per exemple <em>082938</em> per a Vallcebre).
+      </div>
+    </section>
+
+    <!-- Secció 3: Sèries Històriques de l'INE -->
+    <section class="info-card">
+      <div class="info-card-header">
+        <span class="badge-tag badge-ine">Sèrie Històrica</span>
+        <h2>3. Sèrie Històrica Oficial del Padró: INE (2000–2025)</h2>
+      </div>
+      <p class="info-p">
+        La sèrie temporal d'evolució poblacional anual ininterrompuda des de l'any <strong>2000 fins al 2025</strong> prové de les estadístiques oficials del <strong>Padró Continu de l'Instituto Nacional de Estadística (INE)</strong>.
+      </p>
+      <p class="info-p">
+        Aquestes dades s'extreuen mitjançant l'API REST de sèries temporals de l'INE per a les quatre províncies de Catalunya:
+      </p>
+      <ul style="margin-left: 24px; margin-bottom: 14px; font-size: 13px; line-height: 1.7; color: #374151;">
+        <li><strong>Barcelona</strong>: Taula INE <span class="code-chip">2861</span></li>
+        <li><strong>Girona</strong>: Taula INE <span class="code-chip">2870</span></li>
+        <li><strong>Lleida</strong>: Taula INE <span class="code-chip">2878</span></li>
+        <li><strong>Tarragona</strong>: Taula INE <span class="code-chip">2900</span></li>
+      </ul>
+      <p class="info-p">
+        A partir d'aquesta sèrie contínua de 26 anys per a cadascun dels municipis, el dashboard calcula i cartografia dues mètriques clau d'evolució:
+      </p>
+      <div class="info-features-grid">
+        <div class="feature-box">
+          <h3>Evolució 10 anys (2015–2025)</h3>
+          <p>
+            Compara la població de 2025 amb la de 2015. Classifica els municipis en 6 intervals que van des de descensos significatius (&lt; -10%) fins a creixements molt intensos (&gt; +15%).
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3>Evolució 20 anys (2005–2025)</h3>
+          <p>
+            Mesura la trajectòria demogràfica acumulada en dues dècades. Classifica en intervals des de descensos forts (&lt; -15%) fins a increments molt intensos (&gt; +25%).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secció 4: Exportació de Dades a Excel (CSV) -->
+    <section class="info-card">
+      <div class="info-card-header">
+        <span class="badge-tag badge-export">Interoperabilitat</span>
+        <h2>4. Exportació Dinàmica a Excel (CSV)</h2>
+      </div>
+      <p class="info-p">
+        A la part inferior dreta del dashboard es troba el botó <strong>"⬇ Descarregar dades Excel (CSV)"</strong>, que permet obtenir de manera immediata i autònoma en el navegador un fitxer complet amb totes les dades del conjunt d'anàlisi.
+      </p>
+
+      <div class="info-features-grid">
+        <div class="feature-box">
+          <h3><span class="step-badge">✓</span> Exportació 100% Reactiva</h3>
+          <p>
+            <strong>Sense filtres</strong>: Exporta automàticament els 947 municipis de Catalunya sencera.<br>
+            <strong>Amb filtre territorial</strong>: Si s'ha filtrat per una província, una comarca o un municipi concret, s'exporten exclusivament els municipis d'aquell àmbit.<br>
+            <strong>Amb filtre de llegenda</strong>: Si es clica sobre qualsevol interval de la llegenda del mapa, el fitxer contindrà només els municipis d'aquella categoria.
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3><span class="step-badge">✓</span> Sèrie Històrica Completa 2000–2025</h3>
+          <p>
+            El fitxer incorpora no només la foto fixa actual sinó <strong>tota la sèrie de 26 anys</strong> (<span class="code-chip">pob_2000</span> fins a <span class="code-chip">pob_2025</span>), a més dels guanys o pèrdues absolutes i en percentatge a 10 i 20 anys (<span class="code-chip">var_10a_abs</span>, <span class="code-chip">var_10a_pct</span>, <span class="code-chip">var_20a_abs</span>, <span class="code-chip">var_20a_pct</span>).
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3><span class="step-badge">✓</span> Format Optimitzat per a Excel i R/Python</h3>
+          <p>
+            Generat amb codificació <strong>UTF-8 amb BOM</strong> (<span class="code-chip">\uFEFF</span>) i delimitador estricte de <strong>punt i coma (;)</strong>. Això garanteix que s'obri correctament a Microsoft Excel en configuració espanyola i catalana sense caràcters estranys ni desajustaments de columnes.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secció 5: Funcionalitats Interactives -->
+    <section class="info-card">
+      <div class="info-card-header">
+        <span class="badge-tag badge-tech">Funcionalitats</span>
+        <h2>5. Com Navegar i Treure Partit del Dashboard</h2>
+      </div>
+      <div class="info-features-grid">
+        <div class="feature-box">
+          <h3>Selectors Jeràrquics en Cascada</h3>
+          <p>
+            En triar una <strong>Província</strong>, el desplegable de <strong>Comarca</strong> es restringeix automàticament a les d'aquella demarcació, i en triar una comarca, el desplegable de <strong>Municipi</strong> mostra únicament els seus municipis. El botó de reset (fletxa circular) permet netejar tots els filtres en un sol clic.
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3>Filtre Creuat per Llegenda</h3>
+          <p>
+            En clicar sobre qualsevol interval de la llegenda a la dreta del mapa, es ressalten al mapa només els municipis que compleixen aquella condició i s'actualitzen automàticament els càlculs dels gràfics. Per desfer el filtre, n'hi ha prou amb clicar sobre el botó vermell <strong>"✕ Treure"</strong> o tornar a clicar sobre l'element seleccionat.
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3>Enllaços Directes per URL (?m=)</h3>
+          <p>
+            L'aplicació permet compartir vistes de municipis directament afegint el paràmetre <span class="code-chip">?m=XXXXX</span> a la URL amb el codi INE de 5 dígits (per exemple, <a href="../index.html?m=08293" class="link-external">?m=08293</a> per a Vallcebre o <a href="../index.html?m=08019" class="link-external">?m=08019</a> per a Barcelona).
+          </p>
+        </div>
+        <div class="feature-box">
+          <h3>Filtre Dinàmic per Sexe</h3>
+          <p>
+            Clicant sobre el sector d'Homes o de Dones del primer gràfic (<em>Població per Sexe</em>), s'aplica automàticament un filtre que recalcula la distribució d'edats, nacionalitats, naixements i defuncions per al gènere seleccionat.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secció 6: Arquitectura Tècnica -->
+    <section class="info-card">
+      <div class="info-card-header">
+        <span class="badge-tag badge-tech">Arquitectura</span>
+        <h2>6. Arquitectura Tècnica i Actualització</h2>
+      </div>
+      <p class="info-p">
+        L'aplicació segueix una arquitectura moderna <strong>Zero Daemon Backend</strong>: funciona íntegrament en memòria del navegador client mitjançant HTML5 estàtic, CSS3 personalitzat i JavaScript Vanilla ES6 modular, oferint màxima velocitat de càrrega i privacitat.
+      </p>
+      <p class="info-p">
+        La unió (<em>join</em>) entre les geometries cartogràfiques TopoJSON i els indicadors alfanumèrics dels fitxers CSV es realitza en memòria en temps <span class="code-chip">O(1)</span> a través de taules de dispersió indexades pel codi INE.
+      </p>
+      <p class="info-p">
+        Les dades es mantenen actualitzades mitjançant dos scripts d'extracció automatitzats desenvolupats en Python (disponibles a la carpeta <span class="code-chip">data/</span> del projecte):
+      </p>
+      <ul style="margin-left: 24px; font-size: 13px; line-height: 1.7; color: #374151;">
+        <li><span class="code-chip">data/update_idescat_data.py</span>: Descarrega i consolida les 14 taules estadístiques de l'API EMEX de l'Idescat a <span class="code-chip">idescat_estadistiques.csv</span>.</li>
+        <li><span class="code-chip">data/update_ine_poblacio_historic.py</span>: Extreu les sèries temporals 2000-2025 de l'API de l'INE a <span class="code-chip">poblacio_historica_municipis.csv</span>.</li>
+      </ul>
+    </section>
+
+  </main>
+
+  <!-- Peu Institucional Inferior -->
+  <footer class="bottom-footer">
+    <div class="footer-sources">
+      <span>Dashboard Demogràfic de Catalunya · Fonts oficials: Institut d'Estadística de Catalunya (<a href="https://www.idescat.cat/" target="_blank" rel="noopener noreferrer" class="footer-link">Idescat</a>) i Instituto Nacional de Estadística (<a href="https://www.ine.es/" target="_blank" rel="noopener noreferrer" class="footer-link">INE</a>)</span>
+    </div>
+    <div class="footer-actions">
+      <a href="../index.html" class="btn btn-gray" style="text-decoration: none;">
+        ← Tornar al Dashboard
+      </a>
+      <span class="dashboard-version" aria-label="Versió del dashboard">v1.14</span>
+    </div>
+  </footer>
+
+</body>
+</html>

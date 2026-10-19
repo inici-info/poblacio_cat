@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distribució de la població a Catalunya — Dashboard Demogràfic</title>
+  <meta name="description" content="Dashboard interactiu de la distribució de la població a Catalunya amb dades oficials de l'Idescat i del Padró municipal (INE).">
+
+  <!-- Tipografia institucional Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estils del Dashboard -->
+  <link rel="stylesheet" href="assets/css/dashboard.css?v=1.17">
+</head>
+<body>
+
+  <!-- Pantalla de càrrega inicial -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Carregant dades demogràfiques i cartografia...</div>
+    <div class="loading-subtext">Processant Idestat, Padró històric i TopoJSON en memòria</div>
+  </div>
+
+  <!-- Barra Superior Institucional -->
+  <header class="top-header">
+    <div class="brand-section">
+      <div class="brand-icon">
+        <img src="imatges/family.svg" alt="Població a Catalunya" width="30" height="30">
+      </div>
+      <div>
+        <h1 class="brand-title">Distribució de la població a Catalunya</h1>
+      </div>
+    </div>
+
+    <!-- Desplegables jeràrquics i controls -->
+    <div class="filters-section">
+      <div class="filter-group">
+        <label for="selectProvincia" class="filter-label">Província:</label>
+        <select id="selectProvincia" class="filter-select">
+          <option value="">Totes les províncies</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="selectComarca" class="filter-label">Comarca:</label>
+        <select id="selectComarca" class="filter-select">
+          <option value="">Totes les comarques</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="selectMunicipi" class="filter-label">Municipi:</label>
+        <select id="selectMunicipi" class="filter-select">
+          <option value="">Tots els municipis</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tauler principal dividit en dues columnes -->
+  <main class="main-dashboard">
+
+    <!-- Columna Esquerra: Mapa ECharts, Temàtiques, Llegenda i Evolució -->
+    <section class="map-column">
+      <div class="card map-card">
+        <div class="map-toolbar">
+          <div class="theme-selector" role="group" aria-label="Temàtica cartogràfica">
+            <button class="theme-btn active" data-theme="pop">Població total</button>
+            <button class="theme-btn" data-theme="evol10">Evolució 10 anys (2015–2025)</button>
+            <button class="theme-btn" data-theme="evol20">Evolució 20 anys (2005–2025)</button>
+          </div>
+
+          <div class="map-meta-info">
+            <button id="btnCenterMap" class="btn btn-icon tooltip-btn" title="Centrar mapa a l'àmbit actiu" aria-label="Centrar mapa">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+              </svg>
+              <span class="btn-tooltip">Centrar mapa</span>
+            </button>
+            <button id="btnReset" class="btn btn-icon btn-reset tooltip-btn" title="Neteja tots els filtres (província, comarca, municipi i llegenda)" aria-label="Neteja els filtres">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                <path d="M3 3v5h5"/>
+              </svg>
+              <span class="btn-tooltip">Neteja els filtres</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cos del mapa i bloc de llegenda integrat a la dreta sense separació gris -->
+        <div class="map-body-wrapper">
+          <!-- Contenidor interactiu ECharts pel mapa -->
+          <div id="mapContainer" class="map-view-container">
+            <!-- Botó flotant de centrat (casita) -->
+            <button id="btnFloatingCenter" class="map-home-btn" title="Centrar mapa">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Llegenda com a bloc integrat a la dreta del mapa -->
+          <div id="legendContainer" class="map-legend-panel"></div>
+        </div>
+      </div>
+
+      <!-- Targeta d'Evolució Històrica de la Població (2000-2025) -->
+      <div class="card evolution-card">
+        <div class="evolution-card-header">
+          <span id="evolutionTitle" class="evolution-title">Evolució de la Població (2000–2025)</span>
+          <span id="evolutionScopeSubtitle" class="evolution-subtitle">Catalunya</span>
+        </div>
+        <div id="chartEvolution" class="evolution-chart-body"></div>
+      </div>
+    </section>
+
+    <!-- Columna Dreta: Graella dels 6 Gràfics ECharts -->
+    <section class="charts-column">
+      <div class="charts-header">
+        <div class="scope-indicator">
+          <span id="scopeTitle" class="scope-title">Catalunya</span>
+          <span class="scope-sep">·</span>
+          <span id="scopeCount" class="scope-count">947 municipis — 8.124.126 hab.</span>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <!-- Gràfic 1: Població per Sexe -->
+        <div class="card chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">Població per Sexe</span>
+          </div>
+          <div id="chart1" class="chart-body"></div>
+        </div>
+
+        <!-- Gràfic 2: Grups d'Edat -->
+        <div class="card chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">Grups d'Edat</span>
+          </div>
+          <div id="chart2" class="chart-body"></div>
+        </div>
+
+        <!-- Gràfic 3: Defuncions i Naixements (Partit, estil Grups d'Edat amb mateixa escala) -->
+        <div class="card chart-card chart-card-full">
+          <div class="chart-card-header">
+            <span class="chart-title">Defuncions i Naixements</span>
+            <span id="naturalBalanceBadge" class="chart-badge"></span>
+          </div>
+          <div id="chart3" class="chart-body"></div>
+        </div>
+
+        <!-- Gràfic 4: Població per Nacionalitat -->
+        <div class="card chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">Població per Nacionalitat</span>
+          </div>
+          <div id="chart4" class="chart-body"></div>
+        </div>
+
+        <!-- Gràfic 5: Afiliacions Seguretat Social -->
+        <div class="card chart-card">
+          <div class="chart-card-header">
+            <span class="chart-title">Afiliacions Seguretat Social</span>
+          </div>
+          <div id="chart5" class="chart-body"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Peu institucional inferior amb fonts i descàrrega -->
+  <footer class="bottom-footer">
+    <div class="footer-sources">
+      <a href="info/" class="footer-info-btn" title="Informació sobre les dades, fonts i metodologia" aria-label="Informació i ajuda">
+        <img src="imatges/info.svg" alt="Informació" width="15" height="15">
+      </a>
+      <span>Font: A partir de dades històriques INE i d'estadístiques municipals Idescat (<a href="https://www.idescat.cat/emex/" target="_blank" rel="noopener noreferrer" class="footer-link">El municipi en xifres</a>)</span>
+    </div>
+    <div class="footer-actions">
+      <a id="btnEmexMunicipi" class="btn btn-gray" href="#" target="_blank" rel="noopener noreferrer" style="display: none; text-decoration: none;" title="Consulta dades completes a l'Idescat (EMEX)">
+        Consulta dades completes de <span id="emexMunicipiNom"></span>
+      </a>
+      <button id="btnDownloadCsv" class="btn btn-gray" title="Exporta dades seleccionades a Excel (CSV)">
+        ⬇ Descarregar dades Excel (CSV)
+      </button>
+      <span class="dashboard-version" aria-label="Versió del dashboard">v1.18</span>
+    </div>
+  </footer>
+
+  <!-- Llibreries externes locals (Vendor) -->
+  <script src="assets/vendor/echarts.min.js"></script>
+  <script src="assets/vendor/papaparse.min.js"></script>
+  <script src="assets/vendor/topojson-client.min.js"></script>
+
+  <!-- Mòduls d'aplicació amb control de memòria cau -->
+  <script src="assets/js/dataService.js?v=1.18"></script>
+  <script src="assets/js/mapView.js?v=1.18"></script>
+  <script src="assets/js/chartsView.js?v=1.18"></script>
+  <script src="assets/js/app.js?v=1.18"></script>
+
+</body>
+</html>
